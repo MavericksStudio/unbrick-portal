@@ -3,7 +3,7 @@ import websockets
 from brain.states import State
 
 def webm_to_wav(blob: bytes) -> str:
-    """Convert a browser audio blob to 16k mono WAV for whisper via ffmpeg."""
+    """Transcode a non-WAV browser audio blob to 16k mono WAV via ffmpeg."""
     src = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
     src.write(blob); src.close()
     dst = src.name + ".wav"
@@ -12,8 +12,18 @@ def webm_to_wav(blob: bytes) -> str:
     os.unlink(src.name)
     return dst
 
+def to_wav(blob: bytes) -> str:
+    """Return a path to a WAV file for whisper. If the face already sent a WAV
+    (RIFF/WAVE container), write it through untouched (no ffmpeg). Otherwise
+    transcode via ffmpeg as a fallback."""
+    if blob[:4] == b"RIFF":
+        f = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        f.write(blob); f.close()
+        return f.name
+    return webm_to_wav(blob)
+
 class Session:
-    def __init__(self, ws, conv, transcribe, synthesize, to_wav=webm_to_wav):
+    def __init__(self, ws, conv, transcribe, synthesize, to_wav=to_wav):
         self.ws = ws
         self.conv = conv
         self.transcribe = transcribe
