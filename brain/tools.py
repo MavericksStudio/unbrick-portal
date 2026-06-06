@@ -16,7 +16,10 @@ def run(action, search=default_search) -> str:
     if action.name == "get_time":
         return _spoken_time()
     if action.name == "search_web":
-        results = search(action.args.get("query", ""), n=3)
+        try:
+            results = search(action.args.get("query", ""), n=3)
+        except Exception:  # dep missing or network error — stay conversational
+            return "I can't search the web right now."
         if not results:
             return "I couldn't find anything on that."
         bodies = [r.get("body", "") for r in results if r.get("body")]
