@@ -57,7 +57,7 @@ mkdir -p brain tests scripts
 # requirements-brain.txt
 websockets==12.0
 requests==2.32.3
-anthropic==0.55.1
+anthropic==0.56.0
 duckduckgo-search==6.3.5
 pytest==8.3.3
 pytest-asyncio==0.24.0
@@ -712,7 +712,7 @@ class FakeResp:
 def test_synthesize_returns_audio_bytes(monkeypatch):
     audio = b"FAKEWAVDATA"
     def fake_post(url, params=None, json=None, timeout=None):
-        assert "text-to-speech" in url
+        assert "texttospeech.googleapis.com" in url
         assert json["input"]["text"] == "hello"
         return FakeResp({"audioContent": base64.b64encode(audio).decode()})
     import brain.tts as m

@@ -9,7 +9,7 @@ class FakeResp:
 def test_synthesize_returns_audio_bytes(monkeypatch):
     audio = b"FAKEWAVDATA"
     def fake_post(url, params=None, json=None, timeout=None):
-        assert "text-to-speech" in url
+        assert "texttospeech.googleapis.com" in url
         assert json["input"]["text"] == "hello"
         return FakeResp({"audioContent": base64.b64encode(audio).decode()})
     import brain.tts as m
