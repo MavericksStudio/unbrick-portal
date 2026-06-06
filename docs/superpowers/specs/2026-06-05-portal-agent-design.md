@@ -1,8 +1,29 @@
 # Portal Agent — Design Spec
 
 **Date:** 2026-06-05
-**Status:** Approved (design), pending implementation plan
+**Status:** Approved (design); **Phase 0 feasibility = GO** (all 4 spikes pass)
 **Forked from:** [`brenpoly/be-more-agent`](https://github.com/brenpoly/be-more-agent)
+
+## Phase 0 outcome (2026-06-05)
+
+All four feasibility spikes passed on the physical device — **Approach A is GO**.
+
+- **Spike 1 — Termux:** GO. Locked Android runs Termux (no root); pkg repos,
+  `sshd`, and key auth over an `adb`-forwarded port all work. We have automated
+  shell access as `u0_a45`.
+- **Spike 3 — gemma3:1b:** PASS, **but only with `--no-mmap`**. With mmap the
+  806 MB model thrashes flash (~0.08 tok/s) against ~38 MB free RAM. With
+  `--no-mmap -t 4`: **pp16 = 13.88 t/s, tg16 = 8.25 t/s** (usable).
+  → **The brain MUST launch llama with `--no-mmap` on this device.**
+- **Spike 4 — localhost WS:** PASS. Termux WS server + on-device loopback, and a
+  Fully Kiosk WebView page reached `ws://127.0.0.1:8765` and round-tripped.
+- **Spike 2 — getUserMedia:** PASS (camera + mic) in Fully Kiosk free tier.
+  Gotchas: grant `CAMERA`+`RECORD_AUDIO` then **restart Fully** to ungrey the mic
+  toggle; enable Camera+Microphone access in Web Content Settings; **resume the
+  `AudioContext` on a user tap** (starts suspended on mobile).
+
+Full log: `docs/superpowers/plans/2026-06-05-portal-agent-phase0-feasibility.md`
+results / `.spike/RESULTS.md`.
 
 ## 1. Goal
 
