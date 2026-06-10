@@ -26,7 +26,7 @@
 | `brain/llm.py` | Local SLM client (llama-server OpenAI HTTP) |
 | `brain/escalate.py` | Claude (Anthropic) client |
 | `brain/stt.py` | whisper.cpp subprocess wrapper |
-| `brain/tts.py` | Google Cloud TTS REST client |
+| `brain/tts.py` | ElevenLabs TTS REST client |
 | `brain/memory.py` | Chat history load/append/save |
 | `brain/agent.py` | `Conversation` orchestrator (pure given deps) |
 | `brain/server.py` | WebSocket server (protocol ↔ orchestrator) |
@@ -691,7 +691,14 @@ git commit -m "feat(brain): add whisper.cpp STT wrapper"
 
 ---
 
-## Task 9: TTS (Google Cloud TTS REST)
+## Task 9: TTS (ElevenLabs REST)
+
+> **Amended during execution:** TTS provider changed from Google to **ElevenLabs**
+> (`eleven_turbo_v2_5`) per user decision — better latency/naturalness for a voice
+> device. Implemented as `ElevenLabsTTS` in `brain/tts.py` (returns raw MP3 bytes;
+> key from `ELEVENLABS_API_KEY`). Same `synthesize(text) -> bytes` interface, so no
+> other module changed. The original Google design is retained below for history.
+
 
 **Files:**
 - Create: `brain/tts.py`

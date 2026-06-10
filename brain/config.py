@@ -15,9 +15,10 @@ class Config:
     # stt
     whisper_bin: str = "whisper-cli"
     whisper_model: str = "ggml-base.en.bin"
-    # tts (Google Cloud TTS REST)
-    tts_voice: str = "en-GB-Standard-B"
-    tts_lang: str = "en-GB"
+    # tts (ElevenLabs)
+    tts_voice_id: str = "21m00Tcm4TlvDq8ikWAM"   # "Rachel" — change to your voice
+    tts_model: str = "eleven_turbo_v2_5"          # low-latency, multilingual
+    tts_output_format: str = "mp3_44100_128"
     # memory
     memory_path: str = "chat_memory.json"
     memory_enabled: bool = True
