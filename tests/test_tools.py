@@ -35,6 +35,13 @@ def test_parse_snippets_respects_limit():
     html = '<a class="result__snippet">a</a><a class="result__snippet">b</a>'
     assert len(tools._parse_snippets(html, n=1)) == 1
 
+def test_parse_snippets_lite_td_markup():
+    # lite.duckduckgo.com uses <td class="result-snippet"> with a nested link
+    html = ('<tr><td class="result-snippet">Lite result about '
+            '<a href="x">Mars</a> rovers.</td></tr>')
+    out = tools._parse_snippets(html)
+    assert out == [{"body": "Lite result about Mars rovers."}]
+
 def test_search_web_unavailable_message_on_failure():
     def boom(q, n=3): raise RuntimeError("network down")
     out = tools.run(Action("search_web", {"query": "x"}), search=boom)

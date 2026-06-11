@@ -2,27 +2,33 @@ import datetime
 from html.parser import HTMLParser
 
 class _DDGSnippetParser(HTMLParser):
-    """Pull result snippet text out of DuckDuckGo's HTML results page."""
+    """Pull result snippets out of DuckDuckGo result pages. Handles both the
+    html endpoint (`<a class="result__snippet">`) and the lite endpoint
+    (`<td class="result-snippet">`)."""
+    SNIPPET_CLASSES = ("result__snippet", "result-snippet")
+
     def __init__(self):
         super().__init__()
-        self._in_snippet = False
+        self._tag = None   # name of the element we're currently capturing
         self._buf = []
         self.snippets = []
 
     def handle_starttag(self, tag, attrs):
-        if tag == "a" and "result__snippet" in dict(attrs).get("class", ""):
-            self._in_snippet = True
-            self._buf = []
+        if self._tag is None:
+            cls = dict(attrs).get("class", "")
+            if any(c in cls for c in self.SNIPPET_CLASSES):
+                self._tag = tag
+                self._buf = []
 
     def handle_endtag(self, tag):
-        if tag == "a" and self._in_snippet:
-            self._in_snippet = False
+        if self._tag is not None and tag == self._tag:
             text = " ".join("".join(self._buf).split())
             if text:
                 self.snippets.append(text)
+            self._tag = None
 
     def handle_data(self, data):
-        if self._in_snippet:
+        if self._tag is not None:
             self._buf.append(data)
 
 def _parse_snippets(html_text, n=3):
@@ -30,17 +36,28 @@ def _parse_snippets(html_text, n=3):
     p.feed(html_text)
     return [{"body": s} for s in p.snippets[:n]]
 
+_DDG_ENDPOINTS = (
+    "https://html.duckduckgo.com/html/",
+    "https://lite.duckduckgo.com/lite/",
+)
+_UA = "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0"
+
 def default_search(query, n=3):
-    """Pure-requests DuckDuckGo search (no Rust deps — works on Termux)."""
+    """Pure-requests DuckDuckGo search (no Rust deps — works on Termux). Tries
+    the html endpoint, falls back to lite if it returns nothing (rate-limit
+    resilience). Returns [] only if every source fails or is empty."""
     import requests
-    r = requests.post(
-        "https://html.duckduckgo.com/html/",
-        data={"q": query},
-        headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Portal/1.0"},
-        timeout=10,
-    )
-    r.raise_for_status()
-    return _parse_snippets(r.text, n)
+    for url in _DDG_ENDPOINTS:
+        try:
+            r = requests.post(url, data={"q": query},
+                              headers={"User-Agent": _UA}, timeout=10)
+            r.raise_for_status()
+            hits = _parse_snippets(r.text, n)
+            if hits:
+                return hits
+        except Exception:
+            continue
+    return []
 
 def _spoken_time(now=None) -> str:
     now = now or datetime.datetime.now()
