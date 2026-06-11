@@ -1,0 +1,3 @@
+# Runtime deps — pure Python, install cleanly on Termux (no Rust toolchain).
+websockets==12.0
+requests==2.32.3

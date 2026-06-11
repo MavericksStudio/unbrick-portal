@@ -1,0 +1,4 @@
+# Optional extras. Web search needs duckduckgo-search, which pulls a Rust
+# dependency (primp) — install only where a Rust toolchain is available, or
+# skip on-device (search degrades gracefully when absent).
+duckduckgo-search==6.3.5

@@ -26,7 +26,7 @@
 | `brain/llm.py` | Local SLM client (llama-server OpenAI HTTP) |
 | `brain/escalate.py` | Claude (Anthropic) client |
 | `brain/stt.py` | whisper.cpp subprocess wrapper |
-| `brain/tts.py` | Google Cloud TTS REST client |
+| `brain/tts.py` | ElevenLabs TTS REST client |
 | `brain/memory.py` | Chat history load/append/save |
 | `brain/agent.py` | `Conversation` orchestrator (pure given deps) |
 | `brain/server.py` | WebSocket server (protocol ↔ orchestrator) |
@@ -57,7 +57,7 @@ mkdir -p brain tests scripts
 # requirements-brain.txt
 websockets==12.0
 requests==2.32.3
-anthropic==0.55.1
+anthropic==0.56.0
 duckduckgo-search==6.3.5
 pytest==8.3.3
 pytest-asyncio==0.24.0
@@ -691,7 +691,14 @@ git commit -m "feat(brain): add whisper.cpp STT wrapper"
 
 ---
 
-## Task 9: TTS (Google Cloud TTS REST)
+## Task 9: TTS (ElevenLabs REST)
+
+> **Amended during execution:** TTS provider changed from Google to **ElevenLabs**
+> (`eleven_turbo_v2_5`) per user decision — better latency/naturalness for a voice
+> device. Implemented as `ElevenLabsTTS` in `brain/tts.py` (returns raw MP3 bytes;
+> key from `ELEVENLABS_API_KEY`). Same `synthesize(text) -> bytes` interface, so no
+> other module changed. The original Google design is retained below for history.
+
 
 **Files:**
 - Create: `brain/tts.py`
@@ -712,7 +719,7 @@ class FakeResp:
 def test_synthesize_returns_audio_bytes(monkeypatch):
     audio = b"FAKEWAVDATA"
     def fake_post(url, params=None, json=None, timeout=None):
-        assert "text-to-speech" in url
+        assert "texttospeech.googleapis.com" in url
         assert json["input"]["text"] == "hello"
         return FakeResp({"audioContent": base64.b64encode(audio).decode()})
     import brain.tts as m

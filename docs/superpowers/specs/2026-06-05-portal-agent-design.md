@@ -143,7 +143,7 @@ action, or plain text to be spoken:
 |---------|--------|-------|
 | Local SLM | `llama.cpp` + **gemma3:1b** Q4 GGUF | replaces Ollama (Termux-friendly) |
 | STT | **whisper.cpp** `ggml-base.en`, local | user choice |
-| TTS | **cloud** (Google TTS, reuse openclaw) | user choice |
+| TTS | **cloud** (ElevenLabs, `eleven_turbo_v2_5`) | user choice — low latency + natural voice for a voice device |
 | Escalation brain | **Claude** (Anthropic API) | reuse openclaw's Anthropic SDK |
 | Vision (v1) | **cloud** vision on captured frame | local `moondream` deferred (RAM) |
 | Runtime | **Termux** + **Termux:API** | no root, no Google services |
