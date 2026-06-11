@@ -1,0 +1,55 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #080b11;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #cfe;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
+}
+
+#orb {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 68%;
+}
+
+#caption {
+  position: absolute;
+  bottom: 16%;
+  left: 6%; right: 6%;
+  text-align: center;
+  font-size: 4.4vw;
+  line-height: 1.4;
+  color: #e6fbff;
+  min-height: 2.6em;
+}
+
+#hint {
+  position: absolute;
+  bottom: 8%;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 3.6vw;
+  color: #5fcfb0;
+  opacity: 0.85;
+}
+
+#status {
+  position: absolute;
+  top: 3%;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 3.2vw;
+  color: #ff8a65;
+}
