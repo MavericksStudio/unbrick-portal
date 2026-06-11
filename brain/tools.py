@@ -1,9 +1,46 @@
 import datetime
+from html.parser import HTMLParser
+
+class _DDGSnippetParser(HTMLParser):
+    """Pull result snippet text out of DuckDuckGo's HTML results page."""
+    def __init__(self):
+        super().__init__()
+        self._in_snippet = False
+        self._buf = []
+        self.snippets = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a" and "result__snippet" in dict(attrs).get("class", ""):
+            self._in_snippet = True
+            self._buf = []
+
+    def handle_endtag(self, tag):
+        if tag == "a" and self._in_snippet:
+            self._in_snippet = False
+            text = " ".join("".join(self._buf).split())
+            if text:
+                self.snippets.append(text)
+
+    def handle_data(self, data):
+        if self._in_snippet:
+            self._buf.append(data)
+
+def _parse_snippets(html_text, n=3):
+    p = _DDGSnippetParser()
+    p.feed(html_text)
+    return [{"body": s} for s in p.snippets[:n]]
 
 def default_search(query, n=3):
-    from duckduckgo_search import DDGS
-    with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=n))
+    """Pure-requests DuckDuckGo search (no Rust deps — works on Termux)."""
+    import requests
+    r = requests.post(
+        "https://html.duckduckgo.com/html/",
+        data={"q": query},
+        headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Portal/1.0"},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return _parse_snippets(r.text, n)
 
 def _spoken_time(now=None) -> str:
     now = now or datetime.datetime.now()
@@ -18,7 +55,7 @@ def run(action, search=default_search) -> str:
     if action.name == "search_web":
         try:
             results = search(action.args.get("query", ""), n=3)
-        except Exception:  # dep missing or network error — stay conversational
+        except Exception:  # network/parse error — stay conversational
             return "I can't search the web right now."
         if not results:
             return "I couldn't find anything on that."
