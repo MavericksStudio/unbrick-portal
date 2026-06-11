@@ -6,7 +6,7 @@ from brain.stt import WhisperSTT
 from brain.tts import ElevenLabsTTS
 from brain.memory import History
 from brain.agent import Conversation
-from brain.tools import default_search
+from brain.search import web_search_via_claude
 from brain.vision import describe_with_claude
 from brain.server import Session, serve
 import asyncio
@@ -20,12 +20,14 @@ def main():
     tts = ElevenLabsTTS(voice_id=cfg.tts_voice_id, model=cfg.tts_model,
                         output_format=cfg.tts_output_format)
     vision = functools.partial(describe_with_claude, anthropic_key, cfg.claude_model)
+    search = functools.partial(web_search_via_claude, api_key=anthropic_key,
+                               model=cfg.claude_model)
 
     def make_session(ws):
         conv = Conversation(
             llm=llm, escalator=escalator,
             history=History(cfg.memory_path, cfg.memory_enabled),
-            search=default_search, vision=vision, extras=cfg.system_prompt_extras,
+            search=search, vision=vision, extras=cfg.system_prompt_extras,
         )
         return Session(ws, conv=conv, transcribe=stt.transcribe,
                        synthesize=tts.synthesize)

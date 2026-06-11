@@ -9,7 +9,7 @@ def mk(tmp_path, llm_reply, escalate_reply="ESCALATED", search=None, vision=None
     hist = History(str(tmp_path / "m.json"), enabled=True)
     return Conversation(
         llm=LLM(), escalator=Esc(), history=hist,
-        search=search or (lambda q, n=3: [{"body": "Mars has water."}]),
+        search=search or (lambda q: "Mars has water."),
         vision=vision or (lambda jpeg, q: "I see a desk."),
         extras="",
     )
@@ -29,7 +29,7 @@ def test_get_time_tool(tmp_path):
 def test_search_tool(tmp_path):
     c = mk(tmp_path, '{"action":"search_web","query":"mars"}')
     r = c.respond("mars news")
-    assert "Mars has water" in r.text
+    assert r.text == "Mars has water." and r.used_tool
 
 def test_escalate(tmp_path):
     c = mk(tmp_path, '{"action":"escalate","query":"hard q"}', escalate_reply="42")

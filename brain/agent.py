@@ -15,7 +15,7 @@ class FrameRequest:
     query: str
 
 class Conversation:
-    def __init__(self, llm, escalator, history, search=tools.default_search,
+    def __init__(self, llm, escalator, history, search=None,
                  vision=None, extras=""):
         self.llm = llm
         self.escalator = escalator
