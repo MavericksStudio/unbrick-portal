@@ -1,6 +1,16 @@
-import asyncio, base64, json, os, subprocess, tempfile
+import asyncio, base64, json, os, subprocess, tempfile, traceback
 import websockets
 from brain.states import State
+
+ERROR_LOG = os.path.expanduser("~/brain-errors.log")
+
+def log_error(err: str):
+    print(err, flush=True)
+    try:
+        with open(ERROR_LOG, "a") as f:
+            f.write(err + "\n")
+    except OSError:
+        pass
 
 def webm_to_wav(blob: bytes) -> str:
     """Transcode a non-WAV browser audio blob to 16k mono WAV via ffmpeg."""
@@ -64,7 +74,8 @@ async def handle_message(sess: Session, raw: str):
             audio = sess.synthesize(reply.text)
             await sess.send(type="tts_audio",
                             data=base64.b64encode(audio).decode())
-        except Exception as e:  # never wedge the face
+        except Exception:  # never wedge the face
+            log_error(traceback.format_exc())
             await sess.send(type="caption", text="Sorry, something went wrong.")
             await sess.set_state(State.ERROR)
         finally:
