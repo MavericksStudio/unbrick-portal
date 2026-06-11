@@ -19,6 +19,18 @@ def test_parse_escalate():
 def test_parse_malformed_json_is_none():
     assert parse_action('{"action": ') is None
 
+def test_parse_markdown_fenced():
+    a = parse_action('```json\n{"action":"get_time"}\n```')
+    assert a == Action(name="get_time", args={})
+
+def test_parse_actions_array_fallback():
+    a = parse_action('{"actions":["get_time"]}')
+    assert a == Action(name="get_time", args={})
+
+def test_parse_actions_array_with_query():
+    a = parse_action('{"actions":["search_web"],"query":"mars"}')
+    assert a == Action(name="search_web", args={"query": "mars"})
+
 def test_build_messages_includes_system_and_history():
     msgs = build_messages([{"role": "user", "content": "hi"},
                            {"role": "assistant", "content": "hello"}],
