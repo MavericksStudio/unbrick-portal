@@ -14,7 +14,7 @@ class Config:
     claude_model: str = "claude-opus-4-8"
     # stt
     whisper_bin: str = "whisper-cli"
-    whisper_model: str = "ggml-base.en.bin"
+    whisper_model: str = "ggml-tiny.en.bin"
     # tts (ElevenLabs)
     tts_voice_id: str = "21m00Tcm4TlvDq8ikWAM"   # "Rachel" — change to your voice
     tts_model: str = "eleven_turbo_v2_5"          # low-latency, multilingual

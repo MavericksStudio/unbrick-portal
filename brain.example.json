@@ -6,7 +6,7 @@
   "ws_port": 8765,
   "claude_model": "claude-opus-4-8",
   "whisper_bin": "whisper-cli",
-  "whisper_model": "ggml-base.en.bin",
+  "whisper_model": "ggml-tiny.en.bin",
   "tts_voice_id": "21m00Tcm4TlvDq8ikWAM",
   "tts_model": "eleven_turbo_v2_5",
   "tts_output_format": "mp3_44100_128",
