@@ -23,4 +23,5 @@ def test_web_search_sends_tool_and_extracts_answer(monkeypatch):
     assert captured["json"]["model"] == "claude-opus-4-8"
     tool = captured["json"]["tools"][0]
     assert tool["type"] == "web_search_20250305" and tool["name"] == "web_search"
-    assert captured["json"]["messages"][0]["content"] == "water on mars"
+    assert "water on mars" in captured["json"]["messages"][0]["content"]
+    assert "MUST use it" in captured["json"]["system"]  # forces a live search

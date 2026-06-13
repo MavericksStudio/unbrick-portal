@@ -43,7 +43,10 @@ class Session:
         self._frame_waiter = None
 
     async def send(self, **obj):
-        await self.ws.send(json.dumps(obj))
+        try:
+            await self.ws.send(json.dumps(obj))
+        except websockets.exceptions.ConnectionClosed:
+            pass  # face dropped/reloaded mid-turn — nothing to do
 
     async def set_state(self, state: State):
         await self.send(type="state", value=state.value)
@@ -96,7 +99,17 @@ async def handle_message(sess: Session, raw: str):
     elif t == "audio":
         # Run the turn as a task so this read-loop stays live to receive the
         # frame the turn may request mid-flight.
-        asyncio.create_task(sess.run_turn(base64.b64decode(msg["data"])))
+        task = asyncio.create_task(sess.run_turn(base64.b64decode(msg["data"])))
+        task.add_done_callback(_reap_task)
+
+def _reap_task(task):
+    # Retrieve any exception so it isn't an "never retrieved" warning, and log it.
+    try:
+        exc = task.exception()
+    except asyncio.CancelledError:
+        return
+    if exc:
+        log_error("".join(traceback.format_exception(exc)))
 
 async def serve(host, port, make_session):
     async def conn(ws):
