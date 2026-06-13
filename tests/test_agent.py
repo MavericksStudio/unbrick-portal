@@ -52,6 +52,25 @@ def test_describe_without_frame(tmp_path):
     r = c.describe(None, "what do you see")
     assert "couldn't" in r.text.lower()
 
+def test_fallback_overrides_stale_direct_answer(tmp_path):
+    # gemma answers a news question directly (stale) instead of routing;
+    # the fallback must override and use web search.
+    c = mk(tmp_path, "The world cup is in Qatar.",
+           search=lambda q: "The 2026 World Cup is in the USA, Canada and Mexico.")
+    r = c.respond("what is the news on the world cup")
+    assert "2026" in r.text and r.used_tool
+    assert "Qatar" not in r.text
+
+def test_fallback_general_question_escalates(tmp_path):
+    c = mk(tmp_path, "Some made-up local answer.", escalate_reply="Paris.")
+    r = c.respond("what is the capital of France")
+    assert r.text == "Paris." and r.used_escalation
+
+def test_greeting_still_uses_local_text(tmp_path):
+    c = mk(tmp_path, "Hey there!")
+    r = c.respond("hello")
+    assert r.text == "Hey there!" and not r.used_escalation
+
 def test_history_records_normal_turn(tmp_path):
     c = mk(tmp_path, "Hi!")
     c.respond("hello")

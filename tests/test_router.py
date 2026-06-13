@@ -1,4 +1,5 @@
-from brain.router import parse_action, build_messages, Action, SYSTEM_PROMPT
+from brain.router import (parse_action, build_messages, classify_fallback,
+                          Action, SYSTEM_PROMPT)
 
 def test_parse_plain_text_is_none():
     assert parse_action("It is sunny today.") is None
@@ -30,6 +31,23 @@ def test_parse_actions_array_fallback():
 def test_parse_actions_array_with_query():
     a = parse_action('{"actions":["search_web"],"query":"mars"}')
     assert a == Action(name="search_web", args={"query": "mars"})
+
+def test_fallback_news_routes_to_search():
+    a = classify_fallback("what is the news on the world cup")
+    assert a.name == "search_web" and "world cup" in a.args["query"]
+
+def test_fallback_weather_routes_to_search():
+    assert classify_fallback("how's the weather in tokyo").name == "search_web"
+
+def test_fallback_general_question_escalates():
+    assert classify_fallback("what is the capital of France").name == "escalate"
+
+def test_fallback_question_mark_escalates():
+    assert classify_fallback("tell me about black holes?").name == "escalate"
+
+def test_fallback_greeting_is_none():
+    assert classify_fallback("hello there") is None
+    assert classify_fallback("thanks") is None
 
 def test_build_messages_includes_system_and_history():
     msgs = build_messages([{"role": "user", "content": "hi"},

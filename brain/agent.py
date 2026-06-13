@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from brain.router import parse_action, build_messages
+from brain.router import parse_action, build_messages, classify_fallback
 from brain import tools
 
 @dataclass
@@ -29,6 +29,8 @@ class Conversation:
         messages = build_messages(self.history.messages(), user_text, self.extras)
         raw = self.llm.complete(messages)
         action = parse_action(raw)
+        if action is None:
+            action = classify_fallback(user_text)  # tiny model didn't route — rescue it
 
         if action is not None and action.name == "capture_image":
             return FrameRequest(query=user_text)  # defer; server runs describe()
