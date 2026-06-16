@@ -25,6 +25,29 @@ All four feasibility spikes passed on the physical device — **Approach A is GO
 Full log: `docs/superpowers/plans/2026-06-05-portal-agent-phase0-feasibility.md`
 results / `.spike/RESULTS.md`.
 
+## Plan 3 outcome + architecture change (2026-06-16)
+
+The WebView face (Plan 3) is built and working end-to-end on the device: a
+**reactive-orb** UI (Canvas) captures mic → 16k WAV, plays Claude/ElevenLabs MP3
+through the speakers, shows captions, and uses an **on-demand camera** (only on
+`request_frame`). Tap-to-talk.
+
+**Major pivot — the on-device SLM was dropped.** gemma3:1b on the QCS605 was
+~60 s/turn (large prompt, CPU, memory swap) and incoherent. Per user decision the
+brain is now **cloud-orchestrated on-device**:
+- **Routing** is **deterministic** (`brain/router.classify`, regex) — instant,
+  reliable: time / vision / current-info search / chat. (Replaces the SLM's
+  JSON-action routing.)
+- **Answers** come from **Claude Haiku** (`claude-haiku-4-5`) with a persona;
+  current info via Claude's **web_search** tool; vision via Claude. STT stays
+  local (whisper tiny.en). TTS = ElevenLabs.
+- llama.cpp / gemma removed from the runtime (frees ~800 MB; ~2-4 s responses).
+
+The device still **self-orchestrates** (router + STT + glue on-device); only heavy
+inference is cloud — consistent with the original "edge device, processing via
+APIs" intent. The neural on-device-SLM goal is shelved (see Plan 3 §"Out of scope"
+→ could revisit with NNAPI/Hexagon later).
+
 ## 1. Goal
 
 Turn a Meta-bricked **Portal Mini** into a self-orchestrating voice + vision AI
