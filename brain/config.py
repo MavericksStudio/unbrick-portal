@@ -3,15 +3,12 @@ from dataclasses import dataclass, asdict
 
 @dataclass
 class Config:
-    # local SLM (llama-server, OpenAI-compatible)
-    llm_base_url: str = "http://127.0.0.1:8080"
-    llm_model: str = "gemma-3-1b-it"        # label only; server hosts one model
-    no_mmap: bool = True                     # Phase 0: REQUIRED on device
     # websocket
     ws_host: str = "127.0.0.1"
     ws_port: int = 8765
-    # escalation
-    claude_model: str = "claude-opus-4-8"
+    # Claude (chat / search / vision) — fast model for snappy voice responses
+    claude_model: str = "claude-haiku-4-5-20251001"
+    persona: str = ""            # override the default assistant persona if set
     # stt
     whisper_bin: str = "whisper-cli"
     whisper_model: str = "ggml-tiny.en.bin"
@@ -22,8 +19,6 @@ class Config:
     # memory
     memory_path: str = "chat_memory.json"
     memory_enabled: bool = True
-    # persona appended to the router system prompt
-    system_prompt_extras: str = ""
 
 def load_config(path: str = "brain.json") -> "Config":
     data = {}

@@ -1,0 +1,6 @@
+{
+  "name": "portal-agent-face",
+  "private": true,
+  "type": "module",
+  "description": "Portal Agent WebView face (static; package.json only sets ESM for node --test)"
+}

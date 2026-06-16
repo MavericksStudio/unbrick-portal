@@ -1,27 +1,24 @@
 import datetime
 
-def default_search(query, n=3):
-    from duckduckgo_search import DDGS
-    with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=n))
-
 def _spoken_time(now=None) -> str:
     now = now or datetime.datetime.now()
     hour = now.hour % 12 or 12  # portable: avoid glibc-only %-I
     ampm = "AM" if now.hour < 12 else "PM"
     return f"It is {hour}:{now.minute:02d} {ampm}"
 
-def run(action, search=default_search) -> str:
-    """Execute a non-escalate, non-capture tool action; return spoken text."""
+def run(action, search=None) -> str:
+    """Execute a non-escalate, non-capture tool action; return spoken text.
+
+    `search` is a callable (query) -> str (a finished, spoken-ready answer), or
+    None if web search is not configured."""
     if action.name == "get_time":
         return _spoken_time()
     if action.name == "search_web":
-        try:
-            results = search(action.args.get("query", ""), n=3)
-        except Exception:  # dep missing or network error — stay conversational
+        if search is None:
             return "I can't search the web right now."
-        if not results:
-            return "I couldn't find anything on that."
-        bodies = [r.get("body", "") for r in results if r.get("body")]
-        return " ".join(bodies[:2]) or "I found something but couldn't read it."
+        try:
+            answer = search(action.args.get("query", ""))
+        except Exception:  # network / API error — stay conversational
+            return "I can't search the web right now."
+        return answer or "I couldn't find anything on that."
     return f"I don't know how to do '{action.name}'."

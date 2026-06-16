@@ -1,18 +1,29 @@
 from brain.router import Action
 from brain import tools
 
-def test_get_time_format(monkeypatch):
-    out = tools.run(Action("get_time"), search=lambda q, n=3: [])
-    # Should be a spoken time string, not JSON
+def test_get_time_format():
+    out = tools.run(Action("get_time"))
     assert "{" not in out
     assert ":" in out or "o'clock" in out.lower()
 
-def test_search_web_summarizes(monkeypatch):
-    fake = [{"title": "Mars", "body": "Water found on Mars."},
-            {"title": "More", "body": "Rover update."}]
-    out = tools.run(Action("search_web", {"query": "mars"}), search=lambda q, n=3: fake)
-    assert "Water found on Mars" in out
+def test_search_web_returns_answer():
+    out = tools.run(Action("search_web", {"query": "mars"}),
+                    search=lambda q: "Water was found on Mars.")
+    assert out == "Water was found on Mars."
+
+def test_search_web_empty_answer():
+    out = tools.run(Action("search_web", {"query": "x"}), search=lambda q: "")
+    assert "couldn't find" in out.lower()
+
+def test_search_web_no_backend():
+    out = tools.run(Action("search_web", {"query": "x"}), search=None)
+    assert "can't search" in out.lower()
+
+def test_search_web_error_is_graceful():
+    def boom(q): raise RuntimeError("api down")
+    out = tools.run(Action("search_web", {"query": "x"}), search=boom)
+    assert "can't search" in out.lower()
 
 def test_unknown_action():
-    out = tools.run(Action("nope"), search=lambda q, n=3: [])
+    out = tools.run(Action("nope"))
     assert "don't know" in out.lower() or "unknown" in out.lower()
