@@ -1,6 +1,6 @@
 import datetime
 import requests
-from brain.escalate import API_URL, _headers, _extract_text
+from brain.chat import API_URL, _headers, _extract_text
 
 def web_search_via_claude(query, api_key, model="claude-opus-4-8",
                           max_uses=3, timeout=40) -> str:

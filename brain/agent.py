@@ -1,53 +1,40 @@
 from dataclasses import dataclass
-from brain.router import parse_action, build_messages, classify_fallback
+from brain.router import classify
 from brain import tools
 
 @dataclass
 class Reply:
     text: str
-    used_escalation: bool = False
     used_tool: bool = False
 
 @dataclass
 class FrameRequest:
-    """Returned by respond() when the SLM picked capture_image. The server
-    fetches a camera frame, then calls describe(jpeg, query) for the final reply."""
+    """Returned by respond() when the user asked the device to see something. The
+    server fetches a camera frame, then calls describe(jpeg, query)."""
     query: str
 
 class Conversation:
-    def __init__(self, llm, escalator, history, search=None,
-                 vision=None, extras=""):
-        self.llm = llm
-        self.escalator = escalator
+    def __init__(self, chat, history, search=None, vision=None):
+        self.chat = chat        # ClaudeChat
         self.history = history
-        self.search = search
-        self.vision = vision  # callable(jpeg_bytes, query) -> str
-        self.extras = extras
+        self.search = search    # callable(query) -> answer str
+        self.vision = vision    # callable(jpeg, query) -> str
 
     def respond(self, user_text):
-        """Returns a Reply, or a FrameRequest if a camera frame is needed first."""
-        messages = build_messages(self.history.messages(), user_text, self.extras)
-        raw = self.llm.complete(messages)
-        action = parse_action(raw)
-        if action is None:
-            action = classify_fallback(user_text)  # tiny model didn't route — rescue it
-
-        if action is not None and action.name == "capture_image":
+        """Returns a Reply, or a FrameRequest if the camera is needed first."""
+        action = classify(user_text)
+        if action.name == "capture_image":
             return FrameRequest(query=user_text)  # defer; server runs describe()
-
-        if action is None:
-            reply = Reply(text=raw)
-        elif action.name == "escalate":
-            reply = Reply(text=self.escalator.ask(action.args.get("query", user_text)),
-                          used_escalation=True)
-        else:
+        if action.name == "get_time":
+            reply = Reply(text=tools.run(action), used_tool=True)
+        elif action.name == "search_web":
             reply = Reply(text=tools.run(action, search=self.search), used_tool=True)
-
+        else:  # chat
+            reply = Reply(text=self.chat.reply(self.history.messages(), user_text))
         self._record(user_text, reply.text)
         return reply
 
     def describe(self, jpeg, query) -> Reply:
-        """Complete a capture_image turn once a frame is available."""
         if jpeg and self.vision:
             text = self.vision(jpeg, query)
         else:

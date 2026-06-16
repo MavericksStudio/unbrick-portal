@@ -1,5 +1,5 @@
 import base64, requests
-from brain.escalate import API_URL, _headers, _extract_text
+from brain.chat import API_URL, _headers, _extract_text
 
 def describe_with_claude(api_key, model, jpeg_bytes, query, timeout=60):
     b64 = base64.b64encode(jpeg_bytes).decode()
