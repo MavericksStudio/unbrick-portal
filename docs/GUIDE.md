@@ -8,9 +8,26 @@ tap, talk to, and get spoken answers from — running on the device itself.
 
 **Time:** ~1 hour · **Difficulty:** patient beginner · **Cost:** a few dollars of AI usage.
 
-> 💡 Throughout, text in `code boxes` is something you type or paste. On the Portal you
-> type with the on-screen keyboard; on your computer you type in a "terminal"
-> (Mac: *Terminal* app; Windows: *PowerShell*; Linux: your terminal).
+---
+
+## 🧭 Before you start — how to read this guide
+
+Every step is tagged so you always know **where** to type:
+
+- **💻 On your computer** — you type in a *terminal*. This is the only place your
+  operating system matters, and it's almost always just the `adb` command:
+  - **macOS** → open the **Terminal** app. Commands are written exactly as shown (`adb …`).
+  - **Linux** → open your terminal. Commands are exactly as shown (`adb …`).
+  - **Windows** → open **PowerShell** *inside the `platform-tools` folder*
+    (Shift-right-click the folder → **Open PowerShell window here**), and type
+    **`.\adb`** wherever this guide says `adb`. Example: the guide's `adb devices`
+    becomes `.\adb devices`.
+- **📱 On the Portal** — you tap the touchscreen or type in the **Termux** app on the
+  Portal itself. **These steps are identical on every operating system** — there's
+  nothing OS-specific once you're typing on the Portal.
+
+> 💡 `code boxes` are things you type/paste. On the Portal, long-press the Termux
+> screen to **Paste** (handy for long lines — type them on your phone, copy, paste).
 
 ---
 
@@ -34,6 +51,7 @@ tap, talk to, and get spoken answers from — running on the device itself.
 ---
 
 ## 1. What you need
+*(planning step — nothing to type)*
 - 📺 A **Meta Portal** that still powers on (built/tested on the **Portal Mini**).
 - 💻 A **computer** (Mac / Windows / Linux).
 - 🔌 A **USB-C data cable** to connect the Portal to the computer.
@@ -43,6 +61,7 @@ tap, talk to, and get spoken answers from — running on the device itself.
 ---
 
 ## 2. Get your two AI keys
+**💻 On your computer (in a web browser)**
 
 These are like passwords that let your Portal use cloud AI. Keep them private.
 
@@ -60,27 +79,27 @@ Paste both somewhere safe for a few minutes — you'll need them in step 8.
 ---
 
 ## 3. Install ADB on your computer
-
-**ADB** is a tool that lets your computer talk to the Portal over USB.
+**💻 On your computer** — **ADB** lets your computer talk to the Portal over USB.
 
 **macOS** (needs [Homebrew](https://brew.sh)):
 ```bash
 brew install android-platform-tools
 ```
 
-**Windows:**
-1. Download "SDK Platform Tools" from
-   https://developer.android.com/tools/releases/platform-tools
-2. Unzip it (e.g. to `C:\platform-tools`).
-3. Open **PowerShell** in that folder (Shift-right-click → "Open PowerShell here").
-   Use `.\adb` instead of `adb` in the commands below.
-
 **Linux (Debian/Ubuntu):**
 ```bash
 sudo apt install adb
 ```
 
-Verify it works:
+**Windows:**
+1. Download "SDK Platform Tools" from
+   https://developer.android.com/tools/releases/platform-tools
+2. Unzip it (e.g. to `C:\platform-tools`).
+3. Open that folder, **Shift-right-click → Open PowerShell window here**.
+4. ⚠️ **Remember:** for the rest of this guide, type **`.\adb`** wherever you see
+   `adb`. Keep this PowerShell window open in the `platform-tools` folder.
+
+**Verify it works** (Windows users: `.\adb version`):
 ```bash
 adb version
 ```
@@ -89,8 +108,8 @@ You should see a version number.
 ---
 
 ## 4. Turn on ADB on the Portal
+**📱 On the Portal (touchscreen)** — *(same on every OS)*
 
-On the **Portal's touchscreen**:
 1. Open **Settings**.
 2. Find **About** (may be "About Portal" / "System") and tap the **Build number**
    (or "Software version") **7 times** quickly. You'll see *"You are now a developer!"*
@@ -100,32 +119,37 @@ On the **Portal's touchscreen**:
 ---
 
 ## 5. Connect the Portal to your computer
+**💻 On your computer** (+ one tap on the Portal)
+
 1. Plug the Portal into your computer with the USB-C cable.
-2. In your computer's terminal:
+2. In your terminal *(Windows: `.\adb devices`)*:
    ```bash
    adb devices
    ```
 3. **Look at the Portal screen** — a popup asks *"Allow USB debugging?"*. Check
    **"Always allow"** and tap **OK**.
-4. Run `adb devices` again. You should see a line ending in `device` (e.g.
-   `819LCM01...   device`). If it says `unauthorized`, redo step 3.
+4. Run it again. You should see a line ending in `device` (e.g.
+   `819LCM01…   device`). If it says `unauthorized`, redo step 3.
 
 ✅ Your computer can now talk to the Portal.
 
 ---
 
 ## 6. Install the apps onto the Portal
+**💻 On your computer** (downloads + `adb` commands)
 
 We'll sideload four free apps. **Use the GitHub builds for the three Termux apps** so
 their signatures match (mixing sources fails).
 
-Download these four files to your computer:
+**Download these four files** to your computer:
 - **Termux** — https://github.com/termux/termux-app/releases (latest, file ending `arm64-v8a.apk`)
 - **Termux:API** — https://github.com/termux/termux-api/releases (latest `arm64-v8a.apk`)
 - **Termux:Boot** — https://github.com/termux/termux-boot/releases (latest `.apk`)
 - **Fully Kiosk Browser** — https://www.fully-kiosk.com (the "Download APK" link)
 
-Then install each (replace the filename with what you downloaded):
+**Install each** (replace the filename with what you downloaded).
+*Windows users: type `.\adb` instead of `adb` in every line below.*
+
 ```bash
 adb install termux-app_*_arm64-v8a.apk
 adb install termux-api_*_arm64-v8a.apk
@@ -134,10 +158,15 @@ adb install Fully-Kiosk-Browser-*.apk
 ```
 Each should print `Success`.
 
-Now **open each app once** on the Portal so Android registers it (tap their icons:
-Termux, Termux:API, Termux:Boot, Fully Kiosk). For Termux:Boot, just opening it is enough.
+> 🪟 **Windows tip:** the `*` wildcard may not expand in PowerShell. Either type the
+> full file name (e.g. `.\adb install termux-app_v0.118.3+github-debug_arm64-v8a.apk`),
+> or press **Tab** to auto-complete the name.
 
-**Allow them to run in the background** (so they survive). On your computer:
+Now **📱 on the Portal, open each app once** (tap their icons: Termux, Termux:API,
+Termux:Boot, Fully Kiosk) so Android registers them.
+
+**Back 💻 on your computer**, allow them to run in the background
+*(Windows: prefix each with `.\`)*:
 ```bash
 adb shell dumpsys deviceidle whitelist +com.termux
 adb shell dumpsys deviceidle whitelist +com.termux.boot
@@ -148,9 +177,10 @@ adb shell dumpsys deviceidle whitelist +de.ozerov.fully
 ---
 
 ## 7. Install Portal Agent (one command)
+**📱 On the Portal (Termux app)** — *(same on every OS)*
 
 Open **Termux** on the Portal. The first time, it sets itself up for a few seconds.
-Then type this **one line** (use the on-screen keyboard) and press Enter:
+Then type this **one line** (or paste it) and press Enter:
 
 ```bash
 pkg install -y git && git clone https://github.com/MavericksStudio/unbrick-portal && cd unbrick-portal && bash scripts/setup-termux.sh
@@ -161,12 +191,10 @@ the speech engine, downloads the voice-recognition model, and sets up auto-start
 **It takes several minutes** (it compiles whisper). Let it finish — you'll see
 `✅ Setup complete.`
 
-> ⌨️ Typing on a touchscreen is tedious. Tip: in Termux you can paste — long-press the
-> screen → Paste. You can type the line on your phone's notes, copy it, and paste.
-
 ---
 
 ## 8. Add your keys
+**📱 On the Portal (Termux app)** — *(same on every OS)*
 
 Still in Termux, open the secrets file:
 ```bash
@@ -179,9 +207,16 @@ ELEVENLABS_API_KEY=your-elevenlabs-key-here
 ```
 Save and exit nano: press **Ctrl+O**, **Enter**, then **Ctrl+X**.
 
+> 💡 Typing keys on the touchscreen is tedious. Easiest: on your phone, copy a key,
+> then in Termux long-press → **Paste**. (Advanced, optional: you can instead push a
+> ready-made file from 💻 your computer with
+> `adb push my.env /sdcard/Download/` then in Termux
+> `cp /sdcard/Download/my.env ~/.portal-agent.env && chmod 600 ~/.portal-agent.env`.)
+
 ---
 
 ## 9. First run & test
+**📱 On the Portal (Termux app)** — *(same on every OS)*
 
 Start everything (in Termux):
 ```bash
@@ -195,6 +230,7 @@ page — that's fine, we point it at the orb next.
 ---
 
 ## 10. Set up the screen (Fully Kiosk)
+**📱 On the Portal (touchscreen)** — *(same on every OS)*
 
 Open **Fully Kiosk → Settings** (swipe in from the far-left edge of the screen).
 
@@ -214,6 +250,7 @@ think, then talk back. 🎉 (If the mic is blocked, see step 2 again.)
 ---
 
 ## 11. Make it automatic (boots on its own)
+**📱 On the Portal (touchscreen)** — *(same on every OS)*
 
 So it comes up by itself after a power cut or reboot:
 
@@ -230,6 +267,7 @@ So it comes up by itself after a power cut or reboot:
 ---
 
 ## 12. Using it
+**📱 On the Portal**
 - **Tap** the orb → it listens (turns green, reacts to your voice).
 - **Tap again** → it thinks, then speaks.
 - Examples: *"What's the capital of France?"*, *"What's the weather in Tokyo?"*,
@@ -239,33 +277,32 @@ So it comes up by itself after a power cut or reboot:
 
 ## Troubleshooting
 
-**The orb shows but it doesn't answer.**
-In Termux: `tail ~/brain-errors.log`. A `401` or `402` means a key is missing or your
-AI account needs credit (check step 2 and step 8).
+**The orb shows but it doesn't answer.** *(📱 in Termux)*
+`tail ~/brain-errors.log`. A `401` or `402` means a key is missing or your AI account
+needs credit (check step 2 and step 8).
 
-**"I can't search the web right now."**
+**"I can't search the web right now."** *(📱 in Termux)*
 Your `ANTHROPIC_API_KEY` is missing/empty — re-check `nano ~/.portal-agent.env`.
 
-**Microphone blocked / no reaction to voice.**
-Fully Kiosk → Web Content Settings → enable Camera/Microphone Access, then fully
-restart Fully Kiosk. Also ensure you tapped the orb first (a tap is needed to unlock audio).
+**Microphone blocked / no reaction to voice.** *(📱 in Fully Kiosk)*
+Web Content Settings → enable Camera/Microphone Access, then fully restart Fully
+Kiosk. Also tap the orb first (a tap is needed to unlock audio).
 
-**After a reboot my computer can't see the Portal with `adb`.**
+**After a reboot my computer can't see the Portal with `adb`.** *(💻 + 📱)*
 A reboot drops the ADB permission. On the Portal: Settings → re-enable **ADB Enabled**
 and re-accept the popup. (The appliance doesn't need ADB — only you do, for changes.)
 
-**It worked, then stopped after a few days.**
-Open Termux and run `bash ~/unbrick-portal/scripts/supervise.sh &` again. If this keeps
-happening, make sure the background-whitelist commands in step 6 were run.
+**It worked, then stopped after a few days.** *(📱 in Termux)*
+Run `bash ~/unbrick-portal/scripts/supervise.sh &` again. If it keeps happening, make
+sure the background-whitelist commands in step 6 were run.
 
-**I need to see what the brain is doing.**
+**See what the brain is doing.** *(📱 in Termux)*
 `tail -f ~/brain.log` (the brain) and `tail -f ~/supervise.log` (the keep-alive).
 
 ---
 
 ## Customizing
-
-Edit `~/unbrick-portal/brain.json`:
+**📱 In Termux**, edit `~/unbrick-portal/brain.json`:
 - `tts_voice_id` — an ElevenLabs voice ID (from your ElevenLabs voice library).
 - `claude_model` — e.g. a bigger model for smarter (slower/pricier) answers.
 - `persona` — change its personality/name (it's "Portal" by default).
@@ -275,10 +312,11 @@ After editing, restart: `pkill -f "python -m brain"` (the supervisor restarts it
 ---
 
 ## Undo / revert
-- **Give the Portal its normal home screen back:** Android Settings → Apps → Default
-  apps → Home app → pick the original launcher.
-- **Remove everything:** uninstall Termux, Termux:API, Termux:Boot, and Fully Kiosk
-  (`adb uninstall com.termux` etc.), and turn ADB back off in Developer options.
+- **Give the Portal its normal home screen back:** 📱 Android Settings → Apps →
+  Default apps → Home app → pick the original launcher.
+- **Remove everything:** 💻 on your computer, uninstall the apps
+  (`adb uninstall com.termux`, etc. — Windows: `.\adb uninstall …`), and 📱 turn ADB
+  back off in Developer options.
 
 ---
 
