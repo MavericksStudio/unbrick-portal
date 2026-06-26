@@ -15,6 +15,10 @@ listening() { (echo >"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
 
 echo "[supervise] $(date) starting watch loop"
 while true; do
+  if ! listening 8022; then
+    echo "[supervise] $(date) sshd down -> starting"
+    sshd 2>/dev/null || true
+  fi
   if ! listening 8765; then
     echo "[supervise] $(date) brain down -> starting"
     nohup python -m brain >>"$HOME/brain.log" 2>&1 &
