@@ -48,6 +48,27 @@ inference is cloud — consistent with the original "edge device, processing via
 APIs" intent. The neural on-device-SLM goal is shelved (see Plan 3 §"Out of scope"
 → could revisit with NNAPI/Hexagon later).
 
+## Plan 4 outcome — autostart & keep-alive (2026-06-26)
+
+**The Portal is now a true appliance: power on → boots straight to the talking orb,
+no laptop/ssh/commands.** Verified by a full reboot.
+
+- **Keep-alive:** `scripts/supervise.sh` holds a `termux-wake-lock` and restarts
+  brain (8765) + face (8088) + sshd (8022) whenever they drop (15 s loop). Secrets
+  from `~/.portal-agent.env` (chmod 600).
+- **Boot:** **Termux:Boot** (`~/.termux/boot/start-portal.sh`) runs the supervisor
+  at device boot — confirmed: after a cold reboot the backend came up unattended.
+  Termux + Termux:Boot + Termux:API + Fully all doze-whitelisted.
+- **UI on boot:** Fully Kiosk's "Start on Boot" did **not** fire on the locked
+  Portal, so **Fully Kiosk was set as the default launcher** — boot (and the home
+  button) now land on the orb. This is the reliable kiosk pattern for this device.
+- **Maintenance note:** a Portal reboot drops the `adb` authorization (USB
+  enumerates but unauthorized); re-enable **Settings → ADB Enabled** + re-accept to
+  regain `adb`/ssh-over-adb for tweaks. The appliance itself needs none of this.
+
+**Project status: COMPLETE** (Phase 0 + Plans 2–4). Optional future work: on-device
+SLM via NNAPI/Hexagon; OTA/remote management; OOM watchdog.
+
 ## 1. Goal
 
 Turn a Meta-bricked **Portal Mini** into a self-orchestrating voice + vision AI
