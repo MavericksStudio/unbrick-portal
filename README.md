@@ -1,178 +1,255 @@
-# Be More Agent 🤖
-**A Customizable, Offline-First AI Agent for Raspberry Pi**
+<div align="center">
 
-[![Watch the Demo](https://img.youtube.com/vi/l5ggH-YhuAw/maxresdefault.jpg)](https://youtu.be/l5ggH-YhuAw)
+<img src="assets/banner.svg" alt="Portal Reborn" width="100%">
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi-red) ![License](https://img.shields.io/badge/License-MIT-green)
+<h1>unbrick-portal · Portal Reborn</h1>
 
-This project turns a Raspberry Pi into a fully functional, conversational AI agent. Unlike cloud-based assistants, this agent runs **100% locally** on your device. It listens for a wake word, processes speech, "thinks" using a local Large Language Model (LLM), and speaks back with a low-latency neural voice—all while displaying reactive face animations.
+<p><strong>Meta bricked your Portal. Bring it back — as a private voice + vision AI assistant that runs on the device itself.</strong></p>
 
-**It is designed as a blank canvas:** You can easily swap the face images and sound effects to create your own character!
+<p>
+  <a href="#-quick-start">Quick&nbsp;Start</a> ·
+  <a href="docs/GUIDE.md">Full&nbsp;Guide</a> ·
+  <a href="#-how-it-works">How&nbsp;it&nbsp;works</a> ·
+  <a href="#-troubleshooting">Troubleshooting</a> ·
+  <a href="#-faq">FAQ</a>
+</p>
+
+<p>
+  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-22c55e.svg">
+  <img alt="Platform" src="https://img.shields.io/badge/Platform-Meta%20Portal%20(Android%2010)-3a86ff.svg">
+  <img alt="On-device" src="https://img.shields.io/badge/Orchestration-100%25%20on--device-7c4dff.svg">
+  <img alt="AI" src="https://img.shields.io/badge/AI-Claude%20%2B%20ElevenLabs-ff8a65.svg">
+  <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-ff4da6.svg">
+</p>
+
+</div>
+
+---
+
+## 🛰️ What is this?
+
+In 2022 Meta discontinued its **Portal** smart displays and shut down the cloud
+services that ran them — turning perfectly good hardware into e-waste.
+
+**unbrick-portal** repurposes that hardware into a **self-contained AI assistant**.
+Walk up, tap the glowing orb, talk, and it answers out loud — and can even *see*
+through the camera when you ask. The Portal does the listening, routing, and
+orchestration **on its own hardware**; only the heavy thinking is handled by cloud
+AI APIs you control.
+
+> 🔴 **Reality check (read this):** this is a **DIY weekend project**, not a one-tap
+> app. You'll need a computer, a USB-C cable, ~1 hour, and a willingness to follow
+> step-by-step instructions and paste a few commands. It also uses **paid AI APIs**
+> (typically a few dollars of usage). The [**Full Guide**](docs/GUIDE.md) is written
+> for patient beginners — no prior coding knowledge assumed.
+
+<div align="center">
+
+<!-- 📹 Add a short demo GIF here: assets/demo.gif -->
+<em>📹 Demo GIF coming soon — record your Portal answering a question and drop it in <code>assets/demo.gif</code>.</em>
+
+</div>
+
+---
 
 ## ✨ Features
 
-* **100% Local Intelligence**: Powered by **Ollama** (LLM) and **Whisper.cpp** (Speech-to-Text). No API fees, no cloud data usage.
-* **Open Source Wake Word**: Wakes up to your custom model using **OpenWakeWord** (Offline & Free). No access keys required.
-* **Hardware-Aware Audio**: Automatically detects your microphone's sample rate and resamples audio on the fly to prevent ALSA errors.
-* **Smart Web Search**: Uses DuckDuckGo to find real-time news and information when the LLM doesn't know the answer.
-* **Reactive Faces**: The GUI updates the character's face based on its state (Listening, Thinking, Speaking, Idle).
-* **Fast Text-to-Speech**: Uses **Piper TTS** for low-latency, high-quality voice generation on the Pi.
-* **Vision Capable**: Can "see" and describe the world using a connected camera and the **Moondream** vision model.
-
-## 🛠️ Hardware Requirements
-
-* **Raspberry Pi 5** (Recommended) or Pi 4 (4GB RAM minimum)
-* USB Microphone & Speaker
-* LCD Screen (DSI or HDMI)
-* Raspberry Pi Camera Module
+- 🎙️ **Talk to it** — tap the orb, speak, hear a natural spoken reply.
+- 👁️ **It can see** — ask "what do you see?" and the camera turns on *only then* (privacy-first).
+- 🌐 **Knows current things** — live web search for news, weather, scores, prices.
+- 🟢 **Reactive orb UI** — a calm animated face that pulses to your voice and its reply.
+- 🔒 **Privacy-first** — the camera is off until you ask; your keys stay on your device.
+- ⚡ **Fast** — ~2–4s responses.
+- 🔁 **True appliance** — boots straight to the orb and restarts itself; no laptop needed once set up.
+- 🧩 **Open & hackable** — small, readable code; swap the voice, the model, or the persona.
 
 ---
 
-## 📂 Project Structure
+## 🧠 How it works
 
-```text
-be-more-agent/
-├── agent.py                   # The main brain script
-├── setup.sh                   # Auto-installer script
-├── wakeword.onnx              # OpenWakeWord model (The "Ear")
-├── config.json                # User settings (Models, Prompt, Hardware)
-├── chat_memory.json           # Conversation history
-├── requirements.txt           # Python dependencies
-├── whisper.cpp/               # Speech-to-Text engine
-├── piper/                     # Piper TTS engine & voice models
-├── sounds/                    # Sound effects folder
-│   ├── greeting_sounds/       # Startup .wav files
-│   ├── thinking_sounds/       # Looping .wav files
-│   ├── ack_sounds/            # "I heard you" .wav files
-│   └── error_sounds/          # Error/Confusion .wav files
-└── faces/                     # Face images folder
-    ├── idle/                  # .png sequence for idle state
-    ├── listening/             # .png sequence for listening
-    ├── thinking/              # .png sequence for thinking
-    ├── speaking/              # .png sequence for speaking
-    ├── error/                 # .png sequence for errors
-    └── warmup/                # .png sequence for startup
+The Portal **orchestrates everything itself** and calls cloud AI only for the heavy lifting.
+
+```mermaid
+flowchart LR
+    U([🗣️ You tap & talk]) --> F["🟢 Orb UI<br/>Fully Kiosk WebView"]
+    F -- "16kHz WAV" --> B["🧠 Brain<br/>Termux · Python"]
+    B --> S["whisper.cpp<br/>speech → text"]
+    S --> R{"Router<br/>on-device rules"}
+    R -- "time" --> T[🕒 local clock]
+    R -- "see" --> V["📷 camera → Claude vision"]
+    R -- "news / weather" --> W["🌐 Claude web search"]
+    R -- "anything else" --> C["💬 Claude Haiku"]
+    T --> X["🔊 ElevenLabs<br/>text → speech"]
+    V --> X
+    W --> X
+    C --> X
+    X -- "MP3" --> F
+    F --> U
 ```
+
+**On the device:** the orb UI, speech-to-text (whisper), and the router/glue.
+**In the cloud (your keys):** Claude for answers/vision/search, ElevenLabs for the voice.
+
+<details>
+<summary>Why not run the AI fully on-device?</summary>
+
+We tried — a small on-device language model (gemma 1B) was the original plan. On the
+Portal's older chip it was **~60 seconds per reply** and unreliable. So routing stays
+**on-device and instant** (simple rules), while the actual answers come from fast cloud
+models. The device still does all the orchestration itself. (Revisiting on-device models
+via the chip's AI accelerator is on the roadmap.)
+</details>
 
 ---
 
-## 🚀 Installation
+## 🛒 What you'll need
 
-### 1. Prerequisites
-Ensure your Raspberry Pi OS is up to date.
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install git -y
-```
-
-### 2. Install Ollama
-This agent relies on [Ollama](https://ollama.com) to run the brain.
-```bash
-curl -fsSL https://ollama.com/install.sh| sh
-```
-*Pull the required models:*
-```bash
-ollama pull gemma:2b
-ollama pull moondream
-```
-
-### 3. Clone & Setup
-```bash
-git clone https://github.com/brenpoly/be-more-agent.git
-cd be-more-agent
-chmod +x setup.sh
-./setup.sh
-```
-*The setup script will install system libraries, create necessary folders, download Piper TTS, and set up the Python virtual environment.*
-
-### 4. Configure the Wake Word
-The setup script downloads a default wake word ("Hey Jarvis"). To use your own:
-1. Train a model at [OpenWakeWord](https://github.com/dscripka/openWakeWord).
-2. Place the `.onnx` file in the root folder.
-3. Rename it to `wakeword.onnx`.
-
-### 5. Run the Agent
-```bash
-source venv/bin/activate
-python agent.py
-```
+| | |
+|---|---|
+| 📺 **A Meta Portal** | Built/tested on the **Portal Mini** (Android 10). Other Portals likely work with tweaks. It must still power on to its home screen. |
+| 💻 **A computer** | Mac, Windows, or Linux — to run a few `adb` commands over USB. |
+| 🔌 **A USB-C cable** | A **data** cable (not charge-only) to connect the Portal to your computer. |
+| 🔑 **Anthropic API key** | For the AI brain. [console.anthropic.com](https://console.anthropic.com) · ~cents per chat. |
+| 🔑 **ElevenLabs API key** | For the voice. [elevenlabs.io](https://elevenlabs.io) · has a free tier. |
+| ⏱️ **~1 hour & patience** | One careful pass through the [guide](docs/GUIDE.md). |
 
 ---
 
-## 📂 Configuration (`config.json`)
+## 🚀 Quick Start
 
-You can modify the hardware behavior and personality in `config.json`. The `agent.py` script creates this on the first run if it doesn't exist, but you can create it manually:
+> 👉 **New to this? Follow the [step-by-step Full Guide](docs/GUIDE.md)** — it explains
+> every step with zero assumptions. The summary below is the 10,000-ft view.
 
-```json
-{
-    "text_model": "gemma3:1b",
-    "vision_model": "moondream",
-    "voice_model": "piper/en_GB-semaine-medium.onnx",
-    "chat_memory": true,
-    "camera_rotation": 0,
-    "system_prompt_extras": "You are a helpful robot assistant. Keep responses short and cute."
-}
-```
+1. **Get two API keys** (Anthropic + ElevenLabs).
+2. **Enable ADB** on the Portal (Settings → tap build number 7×, then turn on *ADB Enabled*).
+3. **On your computer**, install `adb` and sideload **Termux** + **Termux:API** + **Termux:Boot** + **Fully Kiosk** to the Portal.
+4. **In Termux on the Portal**, install the project and run the one-shot setup:
+   ```bash
+   pkg install -y git && git clone https://github.com/MavericksStudio/unbrick-portal
+   cd unbrick-portal && bash scripts/setup-termux.sh
+   ```
+5. **Add your keys** to `~/.portal-agent.env` (the setup script shows you how).
+6. **Set Fully Kiosk** as the home launcher, pointed at `http://127.0.0.1:8088/`.
+7. **Reboot.** It comes up to the talking orb. 🎉
+
+Every one of these is spelled out, with screenshot-level detail, in the
+**[Full Guide »](docs/GUIDE.md)**.
+
+---
+
+## 🗣️ Using it
+
+- **Tap** the orb → it listens (orb turns green and reacts to your voice).
+- **Tap again** → it thinks, then speaks the answer (orb pulses).
+- Try: *"What's the capital of France?"*, *"What's the weather in Tokyo?"*,
+  *"What do you see?"*, *"Tell me a joke."*
+
+Make it yours: edit `brain.json` to change the **voice** (`tts_voice_id`), the
+**model** (`claude_model`), or the **persona** (`persona`).
 
 ---
 
-## 🎨 Customizing Your Character
+## 🔧 Troubleshooting
 
-This software is a generic framework. You can give it a new personality by replacing the assets:
+<details>
+<summary><strong>The orb shows but nothing happens when I talk</strong></summary>
 
-1.  **Faces:** The script looks for PNG sequences in `faces/[state]/`. It will loop through all images found in the folder.
-2.  **Sounds:** Put multiple `.wav` files in the `sounds/[category]/` folders. The robot will pick one at random each time (e.g., different "thinking" hums or "error" buzzes).
+Check the brain is running and your keys are set. In Termux: `tail ~/brain-errors.log`.
+A `401`/`402` means an API key is missing or unfunded.
+</details>
+
+<details>
+<summary><strong>It won't search the web / gives old info</strong></summary>
+
+Web search uses Claude's web-search tool (needs the Anthropic key). Make sure
+`ANTHROPIC_API_KEY` is in `~/.portal-agent.env`.
+</details>
+
+<details>
+<summary><strong>After a reboot my computer can't see the Portal over ADB</strong></summary>
+
+A Portal reboot drops the ADB authorization. On the Portal: Settings → re-enable
+**ADB Enabled** and accept the prompt. (The appliance itself doesn't need ADB — only
+you do, for tweaks.)
+</details>
+
+<details>
+<summary><strong>Microphone is blocked in the orb UI</strong></summary>
+
+In Fully Kiosk → Web Content Settings, enable **Camera/Microphone Access**, then
+restart Fully Kiosk so it re-detects the permission.
+</details>
+
+More in the [guide's troubleshooting section](docs/GUIDE.md#troubleshooting).
 
 ---
-## 🗣️ The Custom BMO Voice
 
-This project features a custom, locally fine-tuned text-to-speech model to make the agent sound authentic! 
+## ❓ FAQ
 
-When you run the `setup.sh` script, it will automatically download the compiled `.onnx` model and its `.json` configuration file from the [Releases page](https://github.com/brenpoly/be-more-agent/releases) and place them into a local `voices/` directory.
+<details>
+<summary><strong>Is it really free?</strong></summary>
 
-**Manual Installation (if you are not using setup.sh):**
-1. Download `bmo.onnx` and `bmo.onnx.json` from the [Latest Release](https://github.com/brenpoly/be-more-agent/releases).
-2. Create a folder named `voices/` in the root directory of this repository.
-3. Place both downloaded files inside the `voices/` folder.
-4. Ensure your `config.json` file points to the new model:
-   ```json
-   "voice_model": "voices/bmo.onnx"
+The software is free and open source. The cloud AI is pay-as-you-go: Claude costs
+roughly cents per conversation, and ElevenLabs has a free monthly tier. No Meta
+account or subscription needed.
+</details>
+
+<details>
+<summary><strong>Does the camera spy on me?</strong></summary>
+
+No. The camera is **off** until you explicitly ask it to look ("what do you see?"),
+then it grabs one frame and turns off again. Nothing is recorded or stored.
+</details>
+
+<details>
+<summary><strong>I'm not technical. Can I really do this?</strong></summary>
+
+If you can carefully follow instructions and copy-paste commands, yes. The
+[Full Guide](docs/GUIDE.md) assumes no coding background. Budget an hour and don't skip steps.
+</details>
+
+<details>
+<summary><strong>Will this work on the bigger Portal / Portal+ / Portal TV?</strong></summary>
+
+It's built and tested on the **Portal Mini**. The others run similar Android-based
+software and should work with minor tweaks — please open an issue (or PR!) with your results.
+</details>
+
 ---
 
-## ⚠️ Troubleshooting
+## 🗺️ Roadmap
 
-* **"No search library found":** If web search fails, ensure you are in the virtual environment and `duckduckgo-search` is installed via pip.
-* **Shutdown Errors:** When you exit the script (Ctrl+C), you might see `Expression 'alsa_snd_pcm_mmap_begin' failed`. **This is normal.** It just means the audio stream was cut off mid-sample. It does not affect the functionality.
-* **Audio Glitches:** If the voice sounds fast or slow, the script attempts to auto-detect sample rates. Ensure your `config.json` points to a valid `.onnx` voice model in the `piper/` folder.
-If your custom BMO voice sounds incredibly deep, slow, or "demonic," don't panic! This is not an issue with the Piper installation or the setup script. It is almost always caused by a **Sample Rate (Hz)** mismatch between the model and the audio player.
+- [ ] Always-on wake word ("Hey Portal") — no tap needed
+- [ ] Revisit an on-device model using the chip's Hexagon AI accelerator
+- [ ] Smart-home / tool integrations
+- [ ] One-script installer for Windows users
+- [ ] Custom character avatars (not just the orb)
 
-Here is how to fix it:
+Contributions welcome — see [issues](https://github.com/MavericksStudio/unbrick-portal/issues).
 
-**Fix 1: Match the Sample Rate**
-By default, `agent.py` expects "medium" quality models and plays audio at 22050 Hz. If your custom model was trained at a different quality (like 48000 Hz or 16000 Hz), playing it at the default rate will stretch or compress the audio, severely altering the pitch.
+---
 
-1. Open your model's configuration file (e.g., `voices/bmo.onnx.json`).
-2. Look for the `"sample_rate"` property and note the number (e.g., `22050`, `16000`, `48000`).
-3. Open `agent.py` and find the line: `PIPER_RATE = 22050`.
-4. Change that number to match the sample rate in your `.json` file.
-5. Save the file and restart the agent.
+## 🙏 Acknowledgements
 
-**Fix 2: Check the Length Scale**
-If the sample rates match perfectly, the issue might be the model's internal pacing setting.
+Built on the shoulders of great open source:
 
-1. Open your `voices/bmo.onnx.json` file.
-2. Look inside the `"inference"` block for a setting called `"length_scale"`. 
-3. Piper uses this to determine the speed of the voice. If this value is set significantly higher than `1.0`, it will stretch the audio and make BMO sound like a zombie. Lower it closer to `1.0` to speed the voice back up to normal.
+- **[be-more-agent](https://github.com/brenpoly/be-more-agent)** by brenpoly — the original
+  local AI-agent project this was forked from (MIT).
+- **[Termux](https://termux.dev)** — the Linux environment that makes this possible on Android.
+- **[whisper.cpp](https://github.com/ggerganov/whisper.cpp)** — on-device speech-to-text.
+- **[Fully Kiosk Browser](https://www.fully-kiosk.com)** — the kiosk WebView shell.
+- **[Anthropic Claude](https://www.anthropic.com)** & **[ElevenLabs](https://elevenlabs.io)** — the cloud brain and voice.
+
+---
 
 ## 📄 License
-This project is dual-licensed:
 
-* **Software / Code:** All source code is licensed under the [MIT License](LICENSE).
-* **Hardware / 3D Models:** The `.obj`, `.stl`, and other 3D modeling files associated with the physical case are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+MIT — see [LICENSE](LICENSE). Do what you like; no warranty.
 
-## ⚖️ Legal Disclaimer
-Disclaimer: Fan Project
-This repository and the associated voice model are a non-commercial, open-source fan project. "BMO" and Adventure Time are registered trademarks and copyrights of Cartoon Network and Warner Bros. Discovery. This project is not affiliated with, endorsed by, or sponsored by Cartoon Network or its parent companies.
+> ⚠️ **Not affiliated with, endorsed by, or sponsored by Meta.** "Portal" is a
+> trademark of Meta Platforms, Inc. This is an independent community project for
+> repurposing hardware you already own.
 
-Voice Model Attribution
-The text-to-speech capabilities of this project are powered by Piper. The custom voice model was fine-tuned locally using Piper's base "Amy" model (en_US-amy-medium). The original Piper engine and base models are developed by the Rhasspy project and distributed under the MIT License.
+<div align="center">
+<sub>Made with 🤍 for everyone with a "dead" Portal on a shelf. If this helped, ⭐ the repo so others can find it.</sub>
+</div>
